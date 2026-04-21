@@ -45,6 +45,14 @@ function avatarHtml(member, size=38) {
 function isAdmin() {
   return currentUser && currentUser.email === ADMIN_EMAIL;
 }
+function shortVinculo(v) {
+  if (!v) return '--';
+  return v
+    .replace('Aluno — Mentoria das Profissões+IA', 'Mentoria Profissões+IA')
+    .replace('Aluno — Mentoria das Startups', 'Mentoria Startups')
+    .replace('Aluno — Mentoria da Inovação Tecnológica em Educação', 'Mentoria Inovação')
+    .replace('Visitante / Interessado', 'Visitante');
+}
 
 // ─── Photo preview ────────────────────────────────────
 function previewPhoto(context) {
@@ -210,7 +218,7 @@ function updateSidebarUser() {
   setAvatarEl(document.getElementById('composer-avatar'), currentProfile);
   setAvatarEl(document.getElementById('topbar-avatar'), currentProfile);
   document.getElementById('user-name-sidebar').textContent = name;
-  document.getElementById('user-course-sidebar').textContent = currentProfile.curso || '--';
+  document.getElementById('user-course-sidebar').textContent = shortVinculo(currentProfile.curso);
 
   // Perfil page
   const perfilAv = document.getElementById('perfil-avatar-display');
@@ -222,7 +230,7 @@ function updateSidebarUser() {
     perfilAv.style.display = 'flex'; perfilAv.textContent = initials(name); perfilImg.style.display = 'none';
   }
   document.getElementById('perfil-name-display').textContent = name;
-  document.getElementById('perfil-course-display').textContent = currentProfile.curso || '--';
+  document.getElementById('perfil-course-display').textContent = shortVinculo(currentProfile.curso);
   document.getElementById('perfil-nome').value = currentProfile.nome || '';
   document.getElementById('perfil-cel').value = currentProfile.cel || '';
   document.getElementById('perfil-bio').value = currentProfile.bio || '';
@@ -408,7 +416,7 @@ function renderPost(p) {
 
   return `<div class="feed-post" id="post-${p.id}">
     <div class="post-header">${av}
-      <div><div class="post-meta-name">${escHtml(name)}</div><div class="post-meta-info">${escHtml(m.curso||'')} · ${dt}</div></div>
+      <div><div class="post-meta-name">${escHtml(name)}</div><div class="post-meta-info">${escHtml(shortVinculo(m.curso))} · ${dt}</div></div>
     </div>
     ${pill}
     <div class="post-body" onclick="openPost('${p.id}')">${escHtml(p.conteudo)}</div>
@@ -515,7 +523,7 @@ function renderMembros(list) {
     const av=m.avatar_url?`<img src="${m.avatar_url}" class="av-photo" alt="${escHtml(m.nome)}">`:initials(m.nome);
     return `<div class="membro-card"><div class="membro-av ${col}" style="overflow:hidden">${av}</div>
       <div class="membro-name">${escHtml(m.nome||'Membro')}</div>
-      <div class="membro-course">${escHtml(m.curso||'--')}</div>
+      <div class="membro-course">${escHtml(shortVinculo(m.curso))}</div>
       <div class="membro-grau">${escHtml(m.grau_instrucao||'')}</div>
       ${online?'<div class="membro-badge-online">● Online</div>':''}
     </div>`;
@@ -657,7 +665,7 @@ async function loadRanking() {
       <div class="rank-av ${col}">${av}</div>
       <div class="rank-info">
         <div class="rank-name">${escHtml(m.nome||'Membro')} ${isMe?'<span style="font-size:11px;color:var(--gold-light)">(você)</span>':''}</div>
-        <div class="rank-course">${escHtml(m.curso||'--')}</div>
+        <div class="rank-course">${escHtml(shortVinculo(m.curso))}</div>
         <div class="rank-breakdown">${m.posts} posts · ${m.comentarios} comentários · ${m.likes} curtidas recebidas</div>
       </div>
       <div class="rank-pts">
