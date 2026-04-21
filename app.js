@@ -8,7 +8,7 @@ const SUPABASE_URL = 'https://lmoiiegiceyflgafrygb.supabase.co'; // substituida
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxtb2lpZWdpY2V5ZmxnYWZyeWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzY5NzUsImV4cCI6MjA5MjIxMjk3NX0.0O-WhXrHdcifkCuzBl0X7hfbZnVgZv_XJG941LGKc2A'; // ← SUBSTITUiDA
 
 // E-mail do administrador — só esse e-mail pode fixar posts e criar eventos
-const ADMIN_EMAIL = 'lojasdecastro@gmail.com';            // ← SUBSTITUA pelo seu e-mail
+const ADMIN_EMAIL = 'lojasdecastro@gmail.com';  // ← SUBSTITUA pelo seu e-mail
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
