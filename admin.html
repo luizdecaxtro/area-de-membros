@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin · Lojas de Castro</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#B8860B;--gold-light:#D4A017;--gold-dark:#8B6508;--gold-pale:rgba(184,134,11,0.1);
+  --bg:#FAF7F2;--bg2:#F3EDE3;--bg3:#EDE4D4;
+  --card:#FFFFFF;
+  --text:#2C2416;--text-muted:#7A6A52;--text-dim:#B0A090;
+  --border:rgba(184,134,11,0.25);--border-soft:rgba(44,36,22,0.09);
+  --success:#2E7D32;--success-bg:rgba(46,125,50,0.08);
+  --error:#C62828;--error-bg:rgba(198,40,40,0.08);
+  --radius:12px;--radius-lg:18px;--radius-sm:8px;
+  --shadow:0 2px 8px rgba(44,36,22,0.09),0 6px 20px rgba(44,36,22,0.06);
+  --shadow-sm:0 1px 4px rgba(44,36,22,0.08);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LOGIN ADMIN */
+#screen-login{display:flex;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(145deg,var(--bg),var(--bg2),var(--bg3));padding:24px}
+.login-box{background:var(--card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:36px;width:100%;max-width:420px;box-shadow:var(--shadow)}
+.login-brand{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:24px}
+.login-brand-dot{width:10px;height:10px;background:var(--gold);border-radius:50%}
+.login-brand span{font-size:13px;color:var(--text-muted);letter-spacing:.05em}
+.login-title{font-family:'Playfair Display',serif;font-size:26px;text-align:center;margin-bottom:6px;color:var(--text)}
+.login-sub{text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:28px}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+label{font-size:11px;font-weight:500;color:var(--gold-dark);letter-spacing:.06em;text-transform:uppercase}
+input,select,textarea{background:var(--bg2);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;width:100%;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);background:var(--card);box-shadow:0 0 0 3px rgba(184,134,11,0.1)}
+input::placeholder{color:var(--text-dim)}
+select option{background:var(--card)}
+textarea{resize:vertical;min-height:80px;line-height:1.55}
+.btn-primary{display:block;width:100%;padding:13px;background:linear-gradient(135deg,var(--gold-dark),var(--gold-light));border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:#fff;cursor:pointer;transition:opacity .2s;box-shadow:var(--shadow-sm);margin-top:4px}
+.btn-primary:hover{opacity:.9}
+.msg-error{background:var(--error-bg);border:1px solid rgba(198,40,40,0.2);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--error);margin-top:10px}
+.msg-success{background:var(--success-bg);border:1px solid rgba(46,125,50,0.2);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--success);margin-top:10px}
+
+/* ADMIN APP */
+#screen-admin{display:none;min-height:100vh;flex-direction:column}
+.admin-header{background:var(--card);border-bottom:1px solid var(--border-soft);padding:0 28px;display:flex;align-items:center;height:60px;gap:16px;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:50}
+.admin-logo{display:flex;align-items:center;gap:8px;font-family:'Playfair Display',serif;font-size:18px;color:var(--text);text-decoration:none}
+.admin-logo-dot{width:8px;height:8px;background:var(--gold);border-radius:50%}
+.admin-badge{background:var(--gold-pale);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--gold-dark);font-weight:500}
+.admin-header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.admin-user{font-size:13px;color:var(--text-muted)}
+.btn-logout-admin{padding:7px 14px;border:1px solid var(--border-soft);border-radius:var(--radius-sm);background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text-muted);cursor:pointer;transition:all .2s}
+.btn-logout-admin:hover{border-color:rgba(198,40,40,0.3);color:var(--error)}
+.btn-back-site{padding:7px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--gold-pale);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--gold-dark);cursor:pointer;text-decoration:none;transition:all .2s}
+.btn-back-site:hover{background:rgba(184,134,11,0.18)}
+
+.admin-body{display:flex;flex:1}
+.admin-sidebar{width:220px;min-width:220px;background:var(--card);border-right:1px solid var(--border-soft);padding:20px 12px;display:flex;flex-direction:column;gap:2px}
+.admin-nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border:none;border-left:3px solid transparent;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text-muted);background:transparent;cursor:pointer;text-align:left;width:100%;transition:all .18s}
+.admin-nav-item:hover{background:var(--bg2);color:var(--text)}
+.admin-nav-item.active{background:var(--gold-pale);color:var(--gold-dark);font-weight:500;border-left-color:var(--gold)}
+
+.admin-main{flex:1;padding:28px;max-width:1100px}
+.admin-page{display:none}
+.admin-page.active{display:block}
+
+/* STATS */
+.admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.admin-stat{background:var(--card);border:1px solid var(--border-soft);border-radius:var(--radius);padding:16px;text-align:center;box-shadow:var(--shadow-sm)}
+.admin-stat-num{font-family:'Playfair Display',serif;font-size:28px;color:var(--gold-dark);font-weight:500}
+.admin-stat-lbl{font-size:12px;color:var(--text-muted);margin-top:3px}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.toolbar h2{font-family:'Playfair Display',serif;font-size:20px;color:var(--text);flex:1}
+.search-box{background:var(--card);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:9px 14px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;width:220px;transition:border-color .2s;box-shadow:var(--shadow-sm)}
+.search-box:focus{border-color:var(--gold)}
+.search-box::placeholder{color:var(--text-dim)}
+.filter-select{background:var(--card);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text-muted);outline:none;cursor:pointer;box-shadow:var(--shadow-sm)}
+.btn-new{background:var(--gold);border:none;border-radius:var(--radius-sm);padding:9px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity .2s;box-shadow:var(--shadow-sm)}
+.btn-new:hover{opacity:.9}
+
+/* TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--bg2)}
+th{padding:12px 16px;text-align:left;font-size:11px;font-weight:500;color:var(--gold-dark);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border-soft)}
+td{padding:13px 16px;font-size:14px;color:var(--text);border-bottom:1px solid var(--border-soft);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2)}
+.td-avatar{display:flex;align-items:center;gap:10px}
+.td-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0;overflow:hidden}
+.td-name{font-weight:500}
+.td-email{font-size:13px;color:var(--text-muted)}
+.badge-curso{display:inline-block;background:var(--gold-pale);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--gold-dark)}
+.online-dot{width:8px;height:8px;background:var(--success);border-radius:50%;display:inline-block}
+.offline-dot{width:8px;height:8px;background:var(--text-dim);border-radius:50%;display:inline-block}
+.actions{display:flex;gap:6px}
+.btn-edit{padding:5px 12px;background:var(--info-bg,rgba(21,101,192,0.08));border:1px solid rgba(21,101,192,0.2);border-radius:6px;font-size:12px;color:#1565C0;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-edit:hover{background:rgba(21,101,192,0.15)}
+.btn-del{padding:5px 12px;background:var(--error-bg);border:1px solid rgba(198,40,40,0.2);border-radius:6px;font-size:12px;color:var(--error);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-del:hover{background:rgba(198,40,40,0.15)}
+.table-empty{text-align:center;padding:48px;color:var(--text-muted);font-size:14px}
+.table-footer{padding:12px 16px;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border-soft);background:var(--bg2)}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(44,36,22,0.45);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(44,36,22,0.18)}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--text);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.modal-close{background:transparent;border:none;font-size:20px;color:var(--text-dim);cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px}
+.modal-close:hover{background:var(--bg2);color:var(--text)}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid-2 .full{grid-column:1/-1}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border-soft)}
+.btn-cancel{padding:10px 20px;border:1px solid var(--border-soft);border-radius:var(--radius-sm);background:transparent;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text-muted);cursor:pointer;transition:all .2s}
+.btn-cancel:hover{background:var(--bg2)}
+.btn-save{padding:10px 24px;background:linear-gradient(135deg,var(--gold-dark),var(--gold-light));border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#fff;cursor:pointer;transition:opacity .2s;box-shadow:var(--shadow-sm)}
+.btn-save:hover{opacity:.9}
+.btn-danger{padding:10px 24px;background:var(--error);border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#fff;cursor:pointer;transition:opacity .2s}
+.btn-danger:hover{opacity:.9}
+
+/* CONFIRM MODAL */
+.confirm-modal{max-width:400px}
+.confirm-icon{font-size:40px;text-align:center;margin-bottom:12px}
+.confirm-msg{font-size:15px;color:var(--text);text-align:center;margin-bottom:6px}
+.confirm-sub{font-size:13px;color:var(--text-muted);text-align:center;margin-bottom:20px}
+
+/* DETAIL VIEW */
+.detail-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:20px;background:var(--bg2);border-radius:var(--radius)}
+.detail-av{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:500;flex-shrink:0;overflow:hidden}
+.detail-name{font-family:'Playfair Display',serif;font-size:20px;color:var(--text)}
+.detail-course{font-size:13px;color:var(--gold-dark);margin-top:2px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.detail-item label{font-size:11px;font-weight:500;color:var(--gold-dark);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:4px}
+.detail-item span{font-size:14px;color:var(--text)}
+.detail-item.full{grid-column:1/-1}
+
+/* AVATAR COLORS */
+.av-0{background:rgba(184,134,11,0.14);color:#8B6508}
+.av-1{background:rgba(21,101,192,0.12);color:#1565C0}
+.av-2{background:rgba(46,125,50,0.12);color:#2E7D32}
+.av-3{background:rgba(173,20,87,0.12);color:#AD1457}
+.av-4{background:rgba(230,81,0,0.12);color:#E65100}
+.av-5{background:rgba(74,20,140,0.12);color:#4A148C}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:12px 18px;font-size:14px;color:var(--text);box-shadow:var(--shadow);z-index:500;display:none;align-items:center;gap:10px;min-width:260px}
+.toast.show{display:flex;animation:slideIn .25s ease}
+.toast.ok{border-left:3px solid var(--success)}
+.toast.err{border-left:3px solid var(--error)}
+@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+@media(max-width:768px){
+  .admin-body{flex-direction:column}
+  .admin-sidebar{width:100%;min-width:0;flex-direction:row;flex-wrap:wrap;padding:8px;gap:4px}
+  .admin-stats{grid-template-columns:repeat(2,1fr)}
+  .form-grid-2{grid-template-columns:1fr}
+  .form-grid-2 .full{grid-column:1}
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== LOGIN ADMIN ==================== -->
+<div id="screen-login">
+  <div class="login-box">
+    <div class="login-brand"><div class="login-brand-dot"></div><span>lojasdecastro.com.br</span></div>
+    <h1 class="login-title">Painel Administrativo</h1>
+    <p class="login-sub">Acesso restrito ao administrador</p>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="adm-email" placeholder="admin@email.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="adm-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="login-err" class="msg-error" style="display:none"></div>
+    <button class="btn-primary" onclick="adminLogin()">Entrar no painel</button>
+    <p style="text-align:center;font-size:12px;color:var(--text-dim);margin-top:16px">
+      <a href="index.html" style="color:var(--gold-dark);text-decoration:none">← Voltar à Área de Membros</a>
+    </p>
+  </div>
+</div>
+
+<!-- ==================== PAINEL ADMIN ==================== -->
+<div id="screen-admin">
+  <header class="admin-header">
+    <a href="index.html" class="admin-logo"><div class="admin-logo-dot"></div>Lojas de Castro</a>
+    <span class="admin-badge">ADMIN</span>
+    <div class="admin-header-right">
+      <span class="admin-user" id="admin-user-email"></span>
+      <a href="index.html" class="btn-back-site">← Ver Área de Membros</a>
+      <button class="btn-logout-admin" onclick="adminLogout()">Sair</button>
+    </div>
+  </header>
+
+  <div class="admin-body">
+    <!-- SIDEBAR NAV -->
+    <nav class="admin-sidebar">
+      <button class="admin-nav-item active" onclick="showAdminPage('dashboard', this)">📊 Dashboard</button>
+      <button class="admin-nav-item" onclick="showAdminPage('alunos', this)">👥 Alunos</button>
+      <button class="admin-nav-item" onclick="showAdminPage('posts', this)">📝 Publicações</button>
+      <button class="admin-nav-item" onclick="showAdminPage('eventos', this)">📅 Eventos</button>
+    </nav>
+
+    <main class="admin-main">
+
+      <!-- DASHBOARD -->
+      <div id="adm-page-dashboard" class="admin-page active">
+        <h2 style="font-family:'Playfair Display',serif;font-size:24px;margin-bottom:24px;color:var(--text)">Visão Geral</h2>
+        <div class="admin-stats">
+          <div class="admin-stat"><div class="admin-stat-num" id="dash-membros">--</div><div class="admin-stat-lbl">Alunos cadastrados</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="dash-online">--</div><div class="admin-stat-lbl">Online agora</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="dash-posts">--</div><div class="admin-stat-lbl">Publicações</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="dash-eventos">--</div><div class="admin-stat-lbl">Eventos criados</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="table-wrap" style="padding:20px">
+            <h3 style="font-size:14px;font-weight:500;color:var(--gold-dark);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Alunos por curso</h3>
+            <div id="dash-cursos"></div>
+          </div>
+          <div class="table-wrap" style="padding:20px">
+            <h3 style="font-size:14px;font-weight:500;color:var(--gold-dark);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Últimos cadastros</h3>
+            <div id="dash-recentes"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALUNOS -->
+      <div id="adm-page-alunos" class="admin-page">
+        <div class="toolbar">
+          <h2>Gerenciar Alunos</h2>
+          <input type="text" class="search-box" id="search-alunos" placeholder="Buscar por nome ou e-mail..." oninput="filterAlunos(this.value)">
+          <select class="filter-select" id="filter-curso" onchange="filterAlunos(document.getElementById('search-alunos').value)">
+            <option value="">Todos os cursos</option>
+            <option>Mentoria das Profissões+IA</option>
+            <option>Mentoria das Startups</option>
+            <option>Mentoria da Inovação Tecnológica em Educação</option>
+          </select>
+          <button class="btn-new" onclick="openAlunoModal()">+ Novo aluno</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Aluno</th>
+                <th>Curso</th>
+                <th>Grau</th>
+                <th>Celular</th>
+                <th>Status</th>
+                <th>Cadastro</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="alunos-tbody"></tbody>
+          </table>
+          <div id="alunos-empty" class="table-empty" style="display:none">Nenhum aluno encontrado.</div>
+          <div class="table-footer" id="alunos-footer"></div>
+        </div>
+      </div>
+
+      <!-- POSTS -->
+      <div id="adm-page-posts" class="admin-page">
+        <div class="toolbar">
+          <h2>Gerenciar Publicações</h2>
+          <input type="text" class="search-box" id="search-posts" placeholder="Buscar publicação..." oninput="filterPosts(this.value)">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Autor</th>
+                <th>Conteúdo</th>
+                <th>Tópico</th>
+                <th>Curtidas</th>
+                <th>Fixado</th>
+                <th>Data</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="posts-tbody"></tbody>
+          </table>
+          <div id="posts-empty" class="table-empty" style="display:none">Nenhuma publicação encontrada.</div>
+        </div>
+      </div>
+
+      <!-- EVENTOS -->
+      <div id="adm-page-eventos" class="admin-page">
+        <div class="toolbar">
+          <h2>Gerenciar Eventos</h2>
+          <button class="btn-new" onclick="openEventoModal()">+ Novo evento</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Evento</th>
+                <th>Data / Hora</th>
+                <th>Curso</th>
+                <th>Link</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="eventos-tbody"></tbody>
+          </table>
+          <div id="eventos-empty" class="table-empty" style="display:none">Nenhum evento cadastrado.</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- MODAL: Aluno (criar/editar) -->
+<div id="modal-aluno" class="modal-bg" onclick="closeMod('modal-aluno', event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-aluno-title">Novo Aluno</span>
+      <button class="modal-close" onclick="document.getElementById('modal-aluno').classList.remove('open')">✕</button>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group full">
+        <label>Nome completo *</label>
+        <input type="text" id="al-nome" placeholder="Nome completo do aluno">
+      </div>
+      <div class="form-group">
+        <label>E-mail *</label>
+        <input type="email" id="al-email" placeholder="email@exemplo.com">
+      </div>
+      <div class="form-group">
+        <label>Celular / WhatsApp</label>
+        <input type="tel" id="al-cel" placeholder="(99) 99999-9999">
+      </div>
+      <div class="form-group">
+        <label>Grau de instrução</label>
+        <select id="al-grau">
+          <option value="">Selecione...</option>
+          <option>Ensino Médio Completo</option>
+          <option>Ensino Superior Incompleto</option>
+          <option>Ensino Superior Completo</option>
+          <option>Pós-graduação / Especialização</option>
+          <option>Mestrado ou Doutorado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Curso</label>
+        <select id="al-curso">
+          <option value="">Selecione...</option>
+          <option>Mentoria das Profissões+IA</option>
+          <option>Mentoria das Startups</option>
+          <option>Mentoria da Inovação Tecnológica em Educação</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Mini bio</label>
+        <textarea id="al-bio" placeholder="Breve descrição sobre o aluno..."></textarea>
+      </div>
+      <div class="form-group full" id="al-senha-group">
+        <label>Senha inicial *</label>
+        <input type="password" id="al-senha" placeholder="Mínimo 6 caracteres">
+        <small style="font-size:11px;color:var(--text-dim);margin-top:3px">O aluno poderá alterar depois no perfil</small>
+      </div>
+    </div>
+    <div id="modal-aluno-msg" style="display:none;margin-top:10px"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="document.getElementById('modal-aluno').classList.remove('open')">Cancelar</button>
+      <button class="btn-save" onclick="saveAluno()">Salvar aluno</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirmar exclusão -->
+<div id="modal-confirm" class="modal-bg" onclick="closeMod('modal-confirm', event)">
+  <div class="modal confirm-modal">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-msg" id="confirm-msg">Excluir este registro?</div>
+    <div class="confirm-sub" id="confirm-sub">Esta ação não pode ser desfeita.</div>
+    <div class="modal-footer" style="justify-content:center">
+      <button class="btn-cancel" onclick="document.getElementById('modal-confirm').classList.remove('open')">Cancelar</button>
+      <button class="btn-danger" id="confirm-btn-ok" onclick="confirmDelete()">Sim, excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Ver detalhes aluno -->
+<div id="modal-detalhe" class="modal-bg" onclick="closeMod('modal-detalhe', event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Detalhes do aluno</span>
+      <button class="modal-close" onclick="document.getElementById('modal-detalhe').classList.remove('open')">✕</button>
+    </div>
+    <div id="modal-detalhe-content"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="document.getElementById('modal-detalhe').classList.remove('open')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Evento -->
+<div id="modal-evento" class="modal-bg" onclick="closeMod('modal-evento', event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-evento-title">Novo Evento</span>
+      <button class="modal-close" onclick="document.getElementById('modal-evento').classList.remove('open')">✕</button>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group full">
+        <label>Título *</label>
+        <input type="text" id="ev-titulo" placeholder="Ex: Aula ao vivo — IA nas Profissões">
+      </div>
+      <div class="form-group full">
+        <label>Descrição</label>
+        <textarea id="ev-desc" placeholder="Detalhes do evento..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Data *</label>
+        <input type="date" id="ev-data">
+      </div>
+      <div class="form-group">
+        <label>Horário *</label>
+        <input type="time" id="ev-hora">
+      </div>
+      <div class="form-group full">
+        <label>Link (Zoom, Meet, YouTube...)</label>
+        <input type="url" id="ev-link" placeholder="https://...">
+      </div>
+      <div class="form-group full">
+        <label>Curso relacionado</label>
+        <select id="ev-curso">
+          <option value="">Todos os cursos</option>
+          <option>Mentoria das Profissões+IA</option>
+          <option>Mentoria das Startups</option>
+          <option>Mentoria da Inovação Tecnológica em Educação</option>
+        </select>
+      </div>
+    </div>
+    <div id="modal-evento-msg" style="display:none;margin-top:10px"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="document.getElementById('modal-evento').classList.remove('open')">Cancelar</button>
+      <button class="btn-save" onclick="saveEvento()">Salvar evento</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const SUPABASE_URL = 'https://SEU_PROJETO.supabase.co';  // ← SUBSTITUA
+const SUPABASE_KEY = 'SUA_CHAVE_ANON_PUBLICA';           // ← SUBSTITUA
+const ADMIN_EMAIL  = 'lojasdecastro@gmail.com';          // ← SUBSTITUA
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── Estado ───────────────────────────────────────────────
+let allAlunos = [], allPosts = [], deletePending = null;
+let editingAlunoId = null, editingEventoId = null;
+
+// ── HELPERS ──────────────────────────────────────────────
+const AV_COLORS = ['av-0','av-1','av-2','av-3','av-4','av-5'];
+function avCol(str){ if(!str)return'av-0'; let h=0; for(let i=0;i<str.length;i++)h=str.charCodeAt(i)+((h<<5)-h); return AV_COLORS[Math.abs(h)%6]; }
+function ini(n){ if(!n)return'?'; return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function esc(s){ if(!s)return''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(iso){ if(!iso)return'--'; return new Date(iso).toLocaleDateString('pt-BR'); }
+function fmtDateTime(iso){ if(!iso)return'--'; const d=new Date(iso); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function isOnline(last){ if(!last)return false; return new Date(last)>new Date(Date.now()-10*60000); }
+
+function toast(msg, type='ok'){
+  const el=document.getElementById('toast');
+  el.innerHTML=`<span>${type==='ok'?'✓':'✕'}</span> ${esc(msg)}`;
+  el.className='toast show '+(type==='ok'?'ok':'err');
+  setTimeout(()=>el.className='toast',3500);
+}
+
+function showError(elId, msg){ const el=document.getElementById(elId); if(!el)return; el.innerHTML=`<div class="msg-error">${esc(msg)}</div>`; el.style.display='block'; }
+function showSuccess(elId, msg){ const el=document.getElementById(elId); if(!el)return; el.innerHTML=`<div class="msg-success">${esc(msg)}</div>`; el.style.display='block'; }
+
+function closeMod(id, e){ if(e&&e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open'); }
+function openMod(id){ document.getElementById(id).classList.add('open'); }
+
+// ── AUTH ────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async ()=>{
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session && session.user.email===ADMIN_EMAIL){ showAdmin(session.user); }
+  else{ document.getElementById('screen-login').style.display='flex'; }
+});
+
+async function adminLogin(){
+  const email=document.getElementById('adm-email').value.trim();
+  const pass=document.getElementById('adm-pass').value;
+  const errEl=document.getElementById('login-err');
+  errEl.style.display='none';
+  if(!email||!pass){ errEl.textContent='Preencha e-mail e senha.'; errEl.style.display='block'; return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if(error){ errEl.textContent='E-mail ou senha incorretos.'; errEl.style.display='block'; return; }
+  if(data.user.email!==ADMIN_EMAIL){ await sb.auth.signOut(); errEl.textContent='Acesso negado. Você não é administrador.'; errEl.style.display='block'; return; }
+  showAdmin(data.user);
+}
+
+function showAdmin(user){
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('screen-admin').style.display='flex';
+  document.getElementById('admin-user-email').textContent=user.email;
+  loadDashboard();
+}
+
+async function adminLogout(){
+  await sb.auth.signOut();
+  window.location.reload();
+}
+
+// ── NAVEGAÇÃO ────────────────────────────────────────────
+function showAdminPage(name, btn){
+  document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('adm-page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='alunos') loadAlunos();
+  if(name==='posts') loadPosts();
+  if(name==='eventos') loadEventos();
+  if(name==='dashboard') loadDashboard();
+}
+
+// ── DASHBOARD ────────────────────────────────────────────
+async function loadDashboard(){
+  const [{ count:m },{ count:p },{ count:e }, onl, membros, recentes] = await Promise.all([
+    sb.from('membros').select('*',{count:'exact',head:true}),
+    sb.from('posts').select('*',{count:'exact',head:true}),
+    sb.from('eventos').select('*',{count:'exact',head:true}),
+    sb.from('membros').select('*',{count:'exact',head:true}).gte('last_seen',new Date(Date.now()-10*60000).toISOString()),
+    sb.from('membros').select('curso'),
+    sb.from('membros').select('nome,curso,created_at,avatar_url,id').order('created_at',{ascending:false}).limit(5)
+  ]);
+  document.getElementById('dash-membros').textContent=m||0;
+  document.getElementById('dash-posts').textContent=p||0;
+  document.getElementById('dash-eventos').textContent=e||0;
+  document.getElementById('dash-online').textContent=onl.count||0;
+
+  // Por curso
+  const cursos={};
+  (membros.data||[]).forEach(m=>{ cursos[m.curso||'Não informado']=(cursos[m.curso||'Não informado']||0)+1; });
+  document.getElementById('dash-cursos').innerHTML = Object.entries(cursos).map(([c,n])=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-soft)">
+      <span style="font-size:13px;color:var(--text)">${esc(c)}</span>
+      <span style="font-size:13px;font-weight:500;color:var(--gold-dark)">${n}</span>
+    </div>`).join('') || '<p style="font-size:13px;color:var(--text-dim)">Sem dados ainda</p>';
+
+  // Recentes
+  document.getElementById('dash-recentes').innerHTML = (recentes.data||[]).map(m=>{
+    const col=avCol(m.id);
+    const av=m.avatar_url?`<img src="${esc(m.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:ini(m.nome);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-soft)">
+      <div class="td-av ${col}" style="width:32px;height:32px;font-size:12px">${av}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500;color:var(--text)">${esc(m.nome||'--')}</div>
+        <div style="font-size:11px;color:var(--text-dim)">${fmtDate(m.created_at)}</div>
+      </div>
+    </div>`;
+  }).join('') || '<p style="font-size:13px;color:var(--text-dim)">Sem cadastros ainda</p>';
+}
+
+// ── ALUNOS ───────────────────────────────────────────────
+async function loadAlunos(){
+  const { data } = await sb.from('membros').select('*').order('created_at',{ascending:false});
+  allAlunos = data||[];
+  renderAlunos(allAlunos);
+}
+
+function renderAlunos(list){
+  const tbody=document.getElementById('alunos-tbody');
+  const empty=document.getElementById('alunos-empty');
+  const footer=document.getElementById('alunos-footer');
+  if(!list||!list.length){ tbody.innerHTML=''; empty.style.display='block'; footer.textContent=''; return; }
+  empty.style.display='none';
+  footer.textContent=`${list.length} aluno${list.length!==1?'s':''} encontrado${list.length!==1?'s':''}`;
+  tbody.innerHTML=list.map(a=>{
+    const col=avCol(a.id);
+    const av=a.avatar_url?`<img src="${esc(a.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:ini(a.nome);
+    const online=isOnline(a.last_seen);
+    return `<tr>
+      <td><div class="td-avatar">
+        <div class="td-av ${col}">${av}</div>
+        <div><div class="td-name">${esc(a.nome||'--')}</div><div class="td-email">${esc(a.email||'')}</div></div>
+      </div></td>
+      <td><span class="badge-curso">${esc(a.curso||'--')}</span></td>
+      <td style="font-size:13px;color:var(--text-muted)">${esc(a.grau_instrucao||'--')}</td>
+      <td style="font-size:13px">${esc(a.cel||'--')}</td>
+      <td><span class="${online?'online-dot':'offline-dot'}"></span> ${online?'Online':'Offline'}</td>
+      <td style="font-size:13px;color:var(--text-muted)">${fmtDate(a.created_at)}</td>
+      <td><div class="actions">
+        <button class="btn-edit" onclick="viewAluno('${a.id}')">Ver</button>
+        <button class="btn-edit" onclick="openEditAluno('${a.id}')">Editar</button>
+        <button class="btn-del" onclick="askDelete('aluno','${a.id}','${esc(a.nome||'')}')">Excluir</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterAlunos(q){
+  const curso=document.getElementById('filter-curso').value;
+  let list=allAlunos;
+  if(q){ const t=q.toLowerCase(); list=list.filter(a=>(a.nome||'').toLowerCase().includes(t)||(a.email||'').toLowerCase().includes(t)); }
+  if(curso) list=list.filter(a=>a.curso===curso);
+  renderAlunos(list);
+}
+
+function viewAluno(id){
+  const a=allAlunos.find(x=>x.id===id); if(!a)return;
+  const col=avCol(a.id);
+  const av=a.avatar_url?`<img src="${esc(a.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:ini(a.nome);
+  document.getElementById('modal-detalhe-content').innerHTML=`
+    <div class="detail-header">
+      <div class="detail-av ${col}" style="width:64px;height:64px;font-size:22px">${av}</div>
+      <div><div class="detail-name">${esc(a.nome||'--')}</div><div class="detail-course">${esc(a.curso||'--')}</div></div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item"><label>E-mail</label><span>${esc(a.email||'--')}</span></div>
+      <div class="detail-item"><label>Celular</label><span>${esc(a.cel||'--')}</span></div>
+      <div class="detail-item"><label>Grau de instrução</label><span>${esc(a.grau_instrucao||'--')}</span></div>
+      <div class="detail-item"><label>Cadastrado em</label><span>${fmtDate(a.created_at)}</span></div>
+      <div class="detail-item"><label>Último acesso</label><span>${fmtDateTime(a.last_seen)}</span></div>
+      <div class="detail-item"><label>Status</label><span>${isOnline(a.last_seen)?'🟢 Online':'⚫ Offline'}</span></div>
+      ${a.bio?`<div class="detail-item full"><label>Bio</label><span>${esc(a.bio)}</span></div>`:''}
+    </div>`;
+  openMod('modal-detalhe');
+}
+
+function openAlunoModal(){
+  editingAlunoId=null;
+  document.getElementById('modal-aluno-title').textContent='Novo Aluno';
+  document.getElementById('al-nome').value='';
+  document.getElementById('al-email').value='';
+  document.getElementById('al-cel').value='';
+  document.getElementById('al-grau').value='';
+  document.getElementById('al-curso').value='';
+  document.getElementById('al-bio').value='';
+  document.getElementById('al-senha').value='';
+  document.getElementById('al-senha-group').style.display='flex';
+  document.getElementById('modal-aluno-msg').style.display='none';
+  openMod('modal-aluno');
+}
+
+function openEditAluno(id){
+  const a=allAlunos.find(x=>x.id===id); if(!a)return;
+  editingAlunoId=id;
+  document.getElementById('modal-aluno-title').textContent='Editar Aluno';
+  document.getElementById('al-nome').value=a.nome||'';
+  document.getElementById('al-email').value=a.email||'';
+  document.getElementById('al-cel').value=a.cel||'';
+  setSelectVal('al-grau',a.grau_instrucao);
+  setSelectVal('al-curso',a.curso);
+  document.getElementById('al-bio').value=a.bio||'';
+  document.getElementById('al-senha-group').style.display='none';
+  document.getElementById('modal-aluno-msg').style.display='none';
+  openMod('modal-aluno');
+}
+
+async function saveAluno(){
+  const nome=document.getElementById('al-nome').value.trim();
+  const email=document.getElementById('al-email').value.trim();
+  const cel=document.getElementById('al-cel').value.trim();
+  const grau=document.getElementById('al-grau').value;
+  const curso=document.getElementById('al-curso').value;
+  const bio=document.getElementById('al-bio').value.trim();
+  const msgEl='modal-aluno-msg';
+
+  if(!nome||!email){ showError(msgEl,'Nome e e-mail são obrigatórios.'); return; }
+
+  if(editingAlunoId){
+    // EDITAR
+    const { error } = await sb.from('membros').update({ nome, cel, grau_instrucao:grau, curso, bio }).eq('id',editingAlunoId);
+    if(error){ showError(msgEl,error.message); return; }
+    toast('Aluno atualizado com sucesso!');
+    document.getElementById('modal-aluno').classList.remove('open');
+    loadAlunos();
+  } else {
+    // CRIAR — usa Supabase Admin via signUp
+    const senha=document.getElementById('al-senha').value;
+    if(!senha||senha.length<6){ showError(msgEl,'Senha deve ter no mínimo 6 caracteres.'); return; }
+    const { data, error } = await sb.auth.signUp({ email, password:senha, options:{ data:{ nome, cel, grau, curso, bio } } });
+    if(error){ showError(msgEl,error.message); return; }
+    if(data.user){
+      await sb.from('membros').upsert({ id:data.user.id, nome, email, cel, grau_instrucao:grau, curso, bio, avatar_url:'', created_at:new Date().toISOString() });
+    }
+    toast('Aluno cadastrado com sucesso!');
+    document.getElementById('modal-aluno').classList.remove('open');
+    loadAlunos(); loadDashboard();
+  }
+}
+
+// ── POSTS ────────────────────────────────────────────────
+async function loadPosts(){
+  const { data } = await sb.from('posts').select('*, membros(nome)').order('created_at',{ascending:false});
+  allPosts=data||[];
+  renderPosts(allPosts);
+}
+
+function renderPosts(list){
+  const tbody=document.getElementById('posts-tbody');
+  const empty=document.getElementById('posts-empty');
+  if(!list||!list.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML=list.map(p=>`<tr>
+    <td style="font-size:13px;font-weight:500">${esc((p.membros||{}).nome||'--')}</td>
+    <td style="font-size:13px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.conteudo||'')}</td>
+    <td><span class="badge-curso" style="font-size:10px">${esc(p.topico||'geral')}</span></td>
+    <td style="font-size:13px;text-align:center">${p.likes||0}</td>
+    <td style="text-align:center">${p.fixado?'📌':'--'}</td>
+    <td style="font-size:13px;color:var(--text-muted)">${fmtDate(p.created_at)}</td>
+    <td><div class="actions">
+      ${!p.fixado?`<button class="btn-edit" onclick="pinPost('${p.id}')">📌 Fixar</button>`:`<button class="btn-edit" onclick="unpinPost('${p.id}')">Desafixar</button>`}
+      <button class="btn-del" onclick="askDelete('post','${p.id}','publicação')">Excluir</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function filterPosts(q){
+  if(!q){ renderPosts(allPosts); return; }
+  const t=q.toLowerCase();
+  renderPosts(allPosts.filter(p=>(p.conteudo||'').toLowerCase().includes(t)||(p.membros?.nome||'').toLowerCase().includes(t)));
+}
+
+async function pinPost(id){
+  await sb.from('posts').update({fixado:false}).neq('id',id);
+  await sb.from('posts').update({fixado:true}).eq('id',id);
+  toast('Post fixado!'); loadPosts();
+}
+async function unpinPost(id){
+  await sb.from('posts').update({fixado:false}).eq('id',id);
+  toast('Fixação removida.'); loadPosts();
+}
+
+// ── EVENTOS ──────────────────────────────────────────────
+async function loadEventos(){
+  const { data } = await sb.from('eventos').select('*').order('data_hora',{ascending:false});
+  renderEventos(data||[]);
+}
+function renderEventos(list){
+  const tbody=document.getElementById('eventos-tbody');
+  const empty=document.getElementById('eventos-empty');
+  if(!list||!list.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML=list.map(e=>`<tr>
+    <td style="font-weight:500">${esc(e.titulo)}</td>
+    <td style="font-size:13px;color:var(--text-muted)">${fmtDateTime(e.data_hora)}</td>
+    <td><span class="badge-curso" style="font-size:10px">${esc(e.curso||'Todos')}</span></td>
+    <td style="font-size:13px">${e.link?`<a href="${esc(e.link)}" target="_blank" style="color:var(--gold-dark)">Abrir</a>`:'--'}</td>
+    <td><div class="actions">
+      <button class="btn-edit" onclick="openEditEvento('${e.id}')">Editar</button>
+      <button class="btn-del" onclick="askDelete('evento','${e.id}','${esc(e.titulo)}')">Excluir</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function openEventoModal(){ editingEventoId=null; document.getElementById('modal-evento-title').textContent='Novo Evento'; ['ev-titulo','ev-desc','ev-data','ev-hora','ev-link'].forEach(id=>document.getElementById(id).value=''); document.getElementById('ev-curso').value=''; document.getElementById('modal-evento-msg').style.display='none'; openMod('modal-evento'); }
+
+async function openEditEvento(id){
+  const { data:e } = await sb.from('eventos').select('*').eq('id',id).single();
+  if(!e)return;
+  editingEventoId=id;
+  document.getElementById('modal-evento-title').textContent='Editar Evento';
+  document.getElementById('ev-titulo').value=e.titulo||'';
+  document.getElementById('ev-desc').value=e.descricao||'';
+  document.getElementById('ev-link').value=e.link||'';
+  const d=new Date(e.data_hora);
+  document.getElementById('ev-data').value=d.toISOString().split('T')[0];
+  document.getElementById('ev-hora').value=d.toTimeString().slice(0,5);
+  setSelectVal('ev-curso',e.curso);
+  document.getElementById('modal-evento-msg').style.display='none';
+  openMod('modal-evento');
+}
+
+async function saveEvento(){
+  const titulo=document.getElementById('ev-titulo').value.trim();
+  const desc=document.getElementById('ev-desc').value.trim();
+  const data=document.getElementById('ev-data').value;
+  const hora=document.getElementById('ev-hora').value;
+  const link=document.getElementById('ev-link').value.trim();
+  const curso=document.getElementById('ev-curso').value;
+  if(!titulo||!data||!hora){ showError('modal-evento-msg','Preencha título, data e horário.'); return; }
+  const data_hora=new Date(`${data}T${hora}:00`).toISOString();
+  if(editingEventoId){
+    const { error }=await sb.from('eventos').update({titulo,descricao:desc,data_hora,link,curso}).eq('id',editingEventoId);
+    if(error){ showError('modal-evento-msg',error.message); return; }
+    toast('Evento atualizado!');
+  } else {
+    const { data:authData } = await sb.auth.getUser();
+    const { error }=await sb.from('eventos').insert({titulo,descricao:desc,data_hora,link,curso,criado_por:authData?.user?.id,created_at:new Date().toISOString()});
+    if(error){ showError('modal-evento-msg',error.message); return; }
+    toast('Evento criado!');
+  }
+  document.getElementById('modal-evento').classList.remove('open');
+  loadEventos(); loadDashboard();
+}
+
+// ── EXCLUIR ──────────────────────────────────────────────
+function askDelete(tipo, id, nome){
+  deletePending={tipo,id};
+  document.getElementById('confirm-msg').textContent=`Excluir ${tipo==='aluno'?'o aluno':tipo==='post'?'a publicação':'o evento'} "${nome}"?`;
+  document.getElementById('confirm-sub').textContent='Esta ação não pode ser desfeita.';
+  openMod('modal-confirm');
+}
+
+async function confirmDelete(){
+  if(!deletePending)return;
+  const {tipo,id}=deletePending;
+  let error;
+  if(tipo==='aluno'){
+    // Deleta da tabela membros (cascade apaga posts/comentários)
+    const r=await sb.from('membros').delete().eq('id',id);
+    error=r.error;
+  } else if(tipo==='post'){
+    const r=await sb.from('posts').delete().eq('id',id);
+    error=r.error;
+  } else if(tipo==='evento'){
+    const r=await sb.from('eventos').delete().eq('id',id);
+    error=r.error;
+  }
+  document.getElementById('modal-confirm').classList.remove('open');
+  deletePending=null;
+  if(error){ toast(error.message,'err'); return; }
+  toast('Excluído com sucesso!');
+  if(tipo==='aluno'){ loadAlunos(); loadDashboard(); }
+  if(tipo==='post') loadPosts();
+  if(tipo==='evento'){ loadEventos(); loadDashboard(); }
+}
+
+// ── UTIL ─────────────────────────────────────────────────
+function setSelectVal(id,val){ const el=document.getElementById(id); if(!el||!val)return; for(let o of el.options)if(o.text===val||o.value===val){o.selected=true;break;} }
+</script>
+</body>
+</html>
