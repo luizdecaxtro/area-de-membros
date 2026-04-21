@@ -219,7 +219,7 @@ tr:hover td{background:var(--bg2)}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div class="table-wrap" style="padding:20px">
-            <h3 style="font-size:14px;font-weight:500;color:var(--gold-dark);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Alunos por curso</h3>
+            <h3 style="font-size:14px;font-weight:500;color:var(--gold-dark);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Membros por vínculo</h3>
             <div id="dash-cursos"></div>
           </div>
           <div class="table-wrap" style="padding:20px">
@@ -235,10 +235,12 @@ tr:hover td{background:var(--bg2)}
           <h2>Gerenciar Alunos</h2>
           <input type="text" class="search-box" id="search-alunos" placeholder="Buscar por nome ou e-mail..." oninput="filterAlunos(this.value)">
           <select class="filter-select" id="filter-curso" onchange="filterAlunos(document.getElementById('search-alunos').value)">
-            <option value="">Todos os cursos</option>
-            <option>Mentoria das Profissões+IA</option>
-            <option>Mentoria das Startups</option>
-            <option>Mentoria da Inovação Tecnológica em Educação</option>
+            <option value="">Todos os vínculos</option>
+            <option>Aluno — Mentoria das Profissões+IA</option>
+            <option>Aluno — Mentoria das Startups</option>
+            <option>Aluno — Mentoria da Inovação Tecnológica em Educação</option>
+            <option>Leitor de Livros</option>
+            <option>Visitante / Interessado</option>
           </select>
           <button class="btn-new" onclick="openAlunoModal()">+ Novo aluno</button>
         </div>
@@ -247,7 +249,7 @@ tr:hover td{background:var(--bg2)}
             <thead>
               <tr>
                 <th>Aluno</th>
-                <th>Curso</th>
+                <th>Vínculo</th>
                 <th>Grau</th>
                 <th>Celular</th>
                 <th>Status</th>
@@ -299,7 +301,7 @@ tr:hover td{background:var(--bg2)}
               <tr>
                 <th>Evento</th>
                 <th>Data / Hora</th>
-                <th>Curso</th>
+                <th>Público alvo</th>
                 <th>Link</th>
                 <th>Ações</th>
               </tr>
@@ -346,12 +348,18 @@ tr:hover td{background:var(--bg2)}
         </select>
       </div>
       <div class="form-group">
-        <label>Curso</label>
+        <label>Vínculo com o site</label>
         <select id="al-curso">
           <option value="">Selecione...</option>
-          <option>Mentoria das Profissões+IA</option>
-          <option>Mentoria das Startups</option>
-          <option>Mentoria da Inovação Tecnológica em Educação</option>
+          <optgroup label="── Aluno de Mentoria ──">
+            <option>Aluno — Mentoria das Profissões+IA</option>
+            <option>Aluno — Mentoria das Startups</option>
+            <option>Aluno — Mentoria da Inovação Tecnológica em Educação</option>
+          </optgroup>
+          <optgroup label="── Outros ──">
+            <option>Leitor de Livros</option>
+            <option>Visitante / Interessado</option>
+          </optgroup>
         </select>
       </div>
       <div class="form-group full">
@@ -428,12 +436,14 @@ tr:hover td{background:var(--bg2)}
         <input type="url" id="ev-link" placeholder="https://...">
       </div>
       <div class="form-group full">
-        <label>Curso relacionado</label>
+        <label>Público alvo</label>
         <select id="ev-curso">
-          <option value="">Todos os cursos</option>
-          <option>Mentoria das Profissões+IA</option>
-          <option>Mentoria das Startups</option>
-          <option>Mentoria da Inovação Tecnológica em Educação</option>
+          <option value="">Todos os membros</option>
+          <option>Aluno — Mentoria das Profissões+IA</option>
+          <option>Aluno — Mentoria das Startups</option>
+          <option>Aluno — Mentoria da Inovação Tecnológica em Educação</option>
+          <option>Leitor de Livros</option>
+          <option>Visitante / Interessado</option>
         </select>
       </div>
     </div>
@@ -453,7 +463,7 @@ tr:hover td{background:var(--bg2)}
 const SUPABASE_URL = 'https://lmoiiegiceyflgafrygb.supabase.co';  // ← SUBSTITUIDA
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxtb2lpZWdpY2V5ZmxnYWZyeWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzY5NzUsImV4cCI6MjA5MjIxMjk3NX0.0O-WhXrHdcifkCuzBl0X7hfbZnVgZv_XJG941LGKc2A';           // ← SUBSTITUA
 const ADMIN_EMAIL  = 'luizdecastro2009@gmail.com'; // ← SUBSTITUA
-
+ 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Estado ───────────────────────────────────────────────
@@ -834,3 +844,4 @@ function setSelectVal(id,val){ const el=document.getElementById(id); if(!el||!va
 </script>
 </body>
 </html>
+
