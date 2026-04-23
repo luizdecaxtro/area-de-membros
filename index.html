@@ -71,12 +71,18 @@
             </select>
           </div>
           <div class="form-group full">
-            <label>Curso que está fazendo <span class="req">*</span></label>
+            <label>Vínculo com o site <span class="req">*</span></label>
             <select id="signup-curso">
-              <option value="" disabled selected>Selecione seu curso...</option>
-              <option>Mentoria das Profissões+IA</option>
-              <option>Mentoria das Startups</option>
-              <option>Mentoria da Inovação Tecnológica em Educação</option>
+              <option value="" disabled selected>Selecione seu vínculo...</option>
+              <optgroup label="── Aluno de Mentoria ──">
+                <option>Aluno — Mentoria das Profissões+IA</option>
+                <option>Aluno — Mentoria das Startups</option>
+                <option>Aluno — Mentoria da Inovação Tecnológica em Educação</option>
+              </optgroup>
+              <optgroup label="── Outros ──">
+                <option>Leitor de Livros</option>
+                <option>Visitante / Interessado</option>
+              </optgroup>
             </select>
           </div>
           <div class="form-group full">
@@ -189,7 +195,7 @@
       <div class="stat-card"><div class="stat-num" id="stat-membros">--</div><div class="stat-lbl">Membros</div></div>
       <div class="stat-card"><div class="stat-num" id="stat-online">--</div><div class="stat-lbl">Online</div></div>
       <div class="stat-card"><div class="stat-num" id="stat-posts">--</div><div class="stat-lbl">Publicações</div></div>
-      <div class="stat-card"><div class="stat-num">3</div><div class="stat-lbl">Cursos</div></div>
+      <div class="stat-card"><div class="stat-num">5</div><div class="stat-lbl">Vínculos</div></div>
     </div>
 
     <!-- PAGE: FEED -->
@@ -318,12 +324,18 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Curso atual</label>
+            <label>Vínculo com o site</label>
             <select id="perfil-curso">
               <option value="" disabled>Selecione...</option>
-              <option>Mentoria das Profissões+IA</option>
-              <option>Mentoria das Startups</option>
-              <option>Mentoria da Inovação Tecnológica em Educação</option>
+              <optgroup label="── Aluno de Mentoria ──">
+                <option>Aluno — Mentoria das Profissões+IA</option>
+                <option>Aluno — Mentoria das Startups</option>
+                <option>Aluno — Mentoria da Inovação Tecnológica em Educação</option>
+              </optgroup>
+              <optgroup label="── Outros ──">
+                <option>Leitor de Livros</option>
+                <option>Visitante / Interessado</option>
+              </optgroup>
             </select>
           </div>
           <div class="form-group full">
@@ -383,10 +395,12 @@
     <div class="form-group" style="margin-bottom:12px">
       <label>Curso relacionado</label>
       <select id="ev-curso">
-        <option value="">Todos os cursos</option>
-        <option>Mentoria das Profissões+IA</option>
-        <option>Mentoria das Startups</option>
-        <option>Mentoria da Inovação Tecnológica em Educação</option>
+        <option value="">Todos os membros</option>
+        <option>Aluno — Mentoria das Profissões+IA</option>
+        <option>Aluno — Mentoria das Startups</option>
+        <option>Aluno — Mentoria da Inovação Tecnológica em Educação</option>
+        <option>Leitor de Livros</option>
+        <option>Visitante / Interessado</option>
       </select>
     </div>
     <div id="ev-error" class="msg-error" style="display:none"></div>
@@ -397,3 +411,4 @@
 <script src="app.js"></script>
 </body>
 </html>
+
